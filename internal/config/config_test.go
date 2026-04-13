@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,17 +10,15 @@ import (
 )
 
 func TestLoadFrom(t *testing.T) {
+	prismDir := t.TempDir()
 	path := filepath.Join(t.TempDir(), "config.toml")
-	content := `
-[immich]
-url     = "https://photos.example.com"
-api_key = "testkey"
-album   = "Minecraft"
-
-[sources]
-prism_dir = "D:/Games/Minecraft/Prism Launcher"
-vanilla   = true
-`
+	content := "[immich]\n" +
+		"url     = \"https://photos.example.com\"\n" +
+		"api_key = \"testkey\"\n" +
+		"album   = \"Minecraft\"\n\n" +
+		"[sources]\n" +
+		"prism_dir = " + fmt.Sprintf("%q", prismDir) + "\n" +
+		"vanilla   = true\n"
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatalf("write fixture: %v", err)
 	}
@@ -37,7 +36,7 @@ vanilla   = true
 	if cfg.Immich.Album != "Minecraft" {
 		t.Errorf("Album = %q", cfg.Immich.Album)
 	}
-	if cfg.Sources.PrismDir != "D:/Games/Minecraft/Prism Launcher" {
+	if cfg.Sources.PrismDir != prismDir {
 		t.Errorf("PrismDir = %q", cfg.Sources.PrismDir)
 	}
 	if !cfg.Sources.Vanilla {
@@ -59,6 +58,25 @@ func TestLoadFromMissingRequired(t *testing.T) {
 	}
 }
 
+func TestLoadFromRejectsInvalidPrismDir(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	content := `
+[immich]
+url     = "https://photos.example.com"
+api_key = "testkey"
+
+[sources]
+prism_dir = "/no/such/directory"
+`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
+	_, err := config.LoadFrom(path)
+	if err == nil {
+		t.Fatal("expected error for non-existent prism_dir, got nil")
+	}
+}
+
 func TestDefaultAlbumName(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.toml")
 	if err := os.WriteFile(path, []byte("[immich]\nurl=\"https://x.com\"\napi_key=\"k\""), 0644); err != nil {
@@ -72,3 +90,4 @@ func TestDefaultAlbumName(t *testing.T) {
 		t.Errorf("default album = %q, want Minecraft", cfg.Immich.Album)
 	}
 }
+

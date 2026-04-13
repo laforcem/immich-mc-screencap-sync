@@ -69,6 +69,16 @@ func LoadFrom(path string) (*Config, error) {
 	if cfg.Immich.Album == "" {
 		cfg.Immich.Album = "Minecraft"
 	}
+	if cfg.Sources.PrismDir != "" {
+		info, err := os.Stat(cfg.Sources.PrismDir)
+		if err != nil {
+			return nil, fmt.Errorf("sources.prism_dir: %w", err)
+		}
+		if !info.IsDir() {
+			return nil, fmt.Errorf("sources.prism_dir: %s is not a directory", cfg.Sources.PrismDir)
+		}
+	}
 	cfg.Path = path
 	return &cfg, nil
 }
+
