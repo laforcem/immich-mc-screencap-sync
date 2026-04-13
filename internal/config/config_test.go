@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/malc/screenshot-sync/internal/config"
@@ -74,6 +75,10 @@ prism_dir = "/no/such/directory"
 	_, err := config.LoadFrom(path)
 	if err == nil {
 		t.Fatal("expected error for non-existent prism_dir, got nil")
+	}
+	want := "can't find `prism_dir`"
+	if !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %q, want it to contain %q", err.Error(), want)
 	}
 }
 
