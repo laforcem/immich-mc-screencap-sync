@@ -1,0 +1,18 @@
+[immich]
+# URL of your Immich instance (same URL used inside and outside your network)
+url = "https://photos.example.com"
+
+# Immich API key — create one in Immich under Account Settings > API Keys
+api_key = "your-api-key-here"
+
+# Album name in Immich where screenshots will be collected (created automatically if missing)
+album = "Minecraft"
+
+[sources]
+# Path to your Prism Launcher root directory (portable install).
+# If omitted, falls back to %APPDATA%\PrismLauncher (standard install location).
+prism_dir = "D:/Games/Minecraft/Prism Launcher"
+
+# Set to true to also watch the vanilla launcher's screenshots folder
+# (%APPDATA%\.minecraft\screenshots)
+vanilla = true
