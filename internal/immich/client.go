@@ -150,6 +150,9 @@ func (c *Client) ApplyTags(ctx context.Context, assetID string, tags []string) e
 			return err
 		}
 		resp.Body.Close()
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return fmt.Errorf("apply tag %s: status %d", tagID, resp.StatusCode)
+		}
 	}
 	return nil
 }
@@ -169,7 +172,10 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 	}
 
 	// Fetch existing tags once
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/tags", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/tags", nil)
+	if err != nil {
+		return err
+	}
 	resp, err := c.do(req)
 	if err != nil {
 		return err
@@ -179,7 +185,9 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 		ID   string `json:"id"`
 		Name string `json:"name"`
 	}
-	json.NewDecoder(resp.Body).Decode(&existing)
+	if err := json.NewDecoder(resp.Body).Decode(&existing); err != nil {
+		return fmt.Errorf("decode tags response: %w", err)
+	}
 
 	c.mu.Lock()
 	for _, t := range existing {
@@ -196,7 +204,10 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 
 	for _, name := range stillMissing {
 		body, _ := json.Marshal(map[string]string{"name": name})
-		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/tags", bytes.NewReader(body))
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/tags", bytes.NewReader(body))
+		if err != nil {
+			return err
+		}
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := c.do(req)
 		if err != nil {
@@ -206,13 +217,12 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 			ID   string `json:"id"`
 			Name string `json:"name"`
 		}
-		json.NewDecoder(resp.Body).Decode(&created)
-		resp.Body.Close()
-		if created.ID != "" {
+		if err := json.NewDecoder(resp.Body).Decode(&created); err == nil && created.ID != "" {
 			c.mu.Lock()
 			c.tagCache[created.Name] = created.ID
 			c.mu.Unlock()
 		}
+		resp.Body.Close()
 	}
 	return nil
 }
@@ -224,13 +234,19 @@ func (c *Client) AddToAlbum(ctx context.Context, assetID, albumName string) erro
 		return err
 	}
 	body, _ := json.Marshal(map[string][]string{"ids": {assetID}})
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPut, c.baseURL+"/api/albums/"+albumID+"/assets", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, c.baseURL+"/api/albums/"+albumID+"/assets", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := c.do(req)
 	if err != nil {
 		return err
 	}
 	resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("add to album %s: status %d", albumID, resp.StatusCode)
+	}
 	return nil
 }
 
@@ -242,7 +258,10 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 	}
 	c.mu.Unlock()
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/albums", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/albums", nil)
+	if err != nil {
+		return "", err
+	}
 	resp, err := c.do(req)
 	if err != nil {
 		return "", err
@@ -252,7 +271,9 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 		ID        string `json:"id"`
 		AlbumName string `json:"albumName"`
 	}
-	json.NewDecoder(resp.Body).Decode(&albums)
+	if err := json.NewDecoder(resp.Body).Decode(&albums); err != nil {
+		return "", fmt.Errorf("decode albums response: %w", err)
+	}
 
 	c.mu.Lock()
 	for _, a := range albums {
@@ -266,7 +287,10 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 
 	// Create the album
 	body, _ := json.Marshal(map[string]any{"albumName": albumName, "description": "", "assetIds": []string{}})
-	createReq, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/albums", bytes.NewReader(body))
+	createReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/albums", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
 	createReq.Header.Set("Content-Type", "application/json")
 	createResp, err := c.do(createReq)
 	if err != nil {
