@@ -76,7 +76,7 @@ prism_dir = "/no/such/directory"
 	if err == nil {
 		t.Fatal("expected error for non-existent prism_dir, got nil")
 	}
-	want := "can't find `prism_dir`"
+	want := "can't find prism_dir"
 	if !strings.Contains(err.Error(), want) {
 		t.Errorf("error = %q, want it to contain %q", err.Error(), want)
 	}

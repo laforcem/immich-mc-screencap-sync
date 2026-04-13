@@ -72,7 +72,7 @@ func LoadFrom(path string) (*Config, error) {
 	if cfg.Sources.PrismDir != "" {
 		info, err := os.Stat(cfg.Sources.PrismDir)
 		if err != nil {
-			return nil, fmt.Errorf("can't find `prism_dir`. Make sure the folder exists: %s", cfg.Sources.PrismDir)
+			return nil, fmt.Errorf("can't find prism_dir %q — make sure the folder exists (see %s)", cfg.Sources.PrismDir, path)
 		}
 		if !info.IsDir() {
 			return nil, fmt.Errorf("sources.prism_dir: %s is not a directory", cfg.Sources.PrismDir)
