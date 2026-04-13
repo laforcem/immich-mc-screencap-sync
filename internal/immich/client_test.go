@@ -101,6 +101,62 @@ func TestApplyTagsCreatesAndCaches(t *testing.T) {
 	}
 }
 
+func TestApplyTagsReturnsStatusErrorOnNon2xx(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/api/assets":
+			json.NewEncoder(w).Encode(map[string]any{"id": "asset-1", "status": "created"})
+		case r.Method == http.MethodPut && strings.HasPrefix(r.URL.Path, "/api/assets/"):
+			json.NewEncoder(w).Encode(map[string]any{"id": "asset-1"})
+		case r.Method == http.MethodGet && r.URL.Path == "/api/tags":
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]any{"message": "Forbidden", "statusCode": 403})
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+
+	c := immich.NewClient(srv.URL, "badkey")
+	err := c.ApplyTags(context.Background(), "asset-1", []string{"minecraft"})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if strings.Contains(err.Error(), "unmarshal") {
+		t.Errorf("error should mention status code, not JSON unmarshal details: %v", err)
+	}
+	if !strings.Contains(err.Error(), "403") {
+		t.Errorf("error should contain status code 403: %v", err)
+	}
+}
+
+func TestAddToAlbumReturnsStatusErrorOnNon2xx(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/api/albums":
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode(map[string]any{"message": "Forbidden", "statusCode": 403})
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+
+	c := immich.NewClient(srv.URL, "badkey")
+	err := c.AddToAlbum(context.Background(), "asset-1", "Minecraft")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if strings.Contains(err.Error(), "unmarshal") {
+		t.Errorf("error should mention status code, not JSON unmarshal details: %v", err)
+	}
+	if !strings.Contains(err.Error(), "403") {
+		t.Errorf("error should contain status code 403: %v", err)
+	}
+}
+
 func TestAddToAlbumCreatesAndCaches(t *testing.T) {
 	srv, calls := fakeServer(t)
 	defer srv.Close()
@@ -122,3 +178,4 @@ func TestAddToAlbumCreatesAndCaches(t *testing.T) {
 		t.Errorf("GET /api/albums called %d times, want 1 (should be cached)", getAlbumCalls)
 	}
 }
+
