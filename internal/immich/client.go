@@ -181,6 +181,10 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 		return err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("fetch tags: status %d: %s", resp.StatusCode, b)
+	}
 	var existing []struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
@@ -212,6 +216,11 @@ func (c *Client) ensureTagsExist(ctx context.Context, tags []string) error {
 		resp, err := c.do(req)
 		if err != nil {
 			return err
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			b, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			return fmt.Errorf("create tag %q: status %d: %s", name, resp.StatusCode, b)
 		}
 		var created struct {
 			ID   string `json:"id"`
@@ -267,6 +276,10 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 		return "", err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("fetch albums: status %d: %s", resp.StatusCode, b)
+	}
 	var albums []struct {
 		ID        string `json:"id"`
 		AlbumName string `json:"albumName"`
@@ -297,6 +310,10 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 		return "", err
 	}
 	defer createResp.Body.Close()
+	if createResp.StatusCode < 200 || createResp.StatusCode >= 300 {
+		b, _ := io.ReadAll(createResp.Body)
+		return "", fmt.Errorf("create album %q: status %d: %s", albumName, createResp.StatusCode, b)
+	}
 	var created struct {
 		ID string `json:"id"`
 	}
@@ -309,3 +326,4 @@ func (c *Client) ensureAlbumExists(ctx context.Context, albumName string) (strin
 	c.mu.Unlock()
 	return created.ID, nil
 }
+
