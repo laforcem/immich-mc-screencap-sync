@@ -36,6 +36,10 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("locate executable: %w", err)
 	}
+	exe, err = filepath.EvalSymlinks(exe)
+	if err != nil {
+		return nil, fmt.Errorf("resolve executable path: %w", err)
+	}
 	candidates := []string{
 		filepath.Join(filepath.Dir(exe), "config.toml"),
 	}

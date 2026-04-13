@@ -20,7 +20,9 @@ album   = "Minecraft"
 prism_dir = "D:/Games/Minecraft/Prism Launcher"
 vanilla   = true
 `
-	os.WriteFile(path, []byte(content), 0644)
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
 
 	cfg, err := config.LoadFrom(path)
 	if err != nil {
@@ -48,7 +50,9 @@ vanilla   = true
 
 func TestLoadFromMissingRequired(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.toml")
-	os.WriteFile(path, []byte(`[immich]`), 0644)
+	if err := os.WriteFile(path, []byte(`[immich]`), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
 	_, err := config.LoadFrom(path)
 	if err == nil {
 		t.Fatal("expected error for missing required fields")
@@ -57,7 +61,9 @@ func TestLoadFromMissingRequired(t *testing.T) {
 
 func TestDefaultAlbumName(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.toml")
-	os.WriteFile(path, []byte("[immich]\nurl=\"https://x.com\"\napi_key=\"k\""), 0644)
+	if err := os.WriteFile(path, []byte("[immich]\nurl=\"https://x.com\"\napi_key=\"k\""), 0644); err != nil {
+		t.Fatalf("write fixture: %v", err)
+	}
 	cfg, err := config.LoadFrom(path)
 	if err != nil {
 		t.Fatalf("LoadFrom: %v", err)
