@@ -35,7 +35,10 @@ func (w *Watcher) Watch(ctx context.Context, onFile func(src minecraft.Source, p
 	watched := make(map[string]minecraft.Source)
 
 	addSources := func() {
-		sources, _ := minecraft.Discover(w.cfg)
+		sources, err := minecraft.Discover(w.cfg)
+		if err != nil {
+			log.Printf("watcher: discover sources: %v", err)
+		}
 		for _, src := range sources {
 			if _, ok := watched[src.ScreenshotsDir]; !ok {
 				if err := fw.Add(src.ScreenshotsDir); err == nil {
@@ -66,8 +69,11 @@ func (w *Watcher) Watch(ctx context.Context, onFile func(src minecraft.Source, p
 					continue
 				}
 				go func(s minecraft.Source, p string) {
-					time.Sleep(500 * time.Millisecond)
-					onFile(s, p)
+					select {
+					case <-time.After(500 * time.Millisecond):
+						onFile(s, p)
+					case <-ctx.Done():
+					}
 				}(src, event.Name)
 			}
 		case err, ok := <-fw.Errors:
