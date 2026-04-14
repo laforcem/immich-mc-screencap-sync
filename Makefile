@@ -1,13 +1,18 @@
 .PHONY: build build-windows test clean
 
-# Native build (Linux)
-build:
-	go build -o screenshot-sync .
+# Detect OS for output binary name
+ifeq ($(OS),Windows_NT)
+    BINARY = screenshot-sync.exe
+else
+    BINARY = screenshot-sync
+endif
 
-# Cross-compile for Windows (requires: apt install gcc-mingw-w64-x86-64)
+# Native build (Linux/macOS/Windows via Git Bash or MSYS2)
+build:
+	go build -o $(BINARY) .
+
+# Cross-compile for Windows from Linux
 build-windows:
-	CGO_ENABLED=1 \
-	CC=x86_64-w64-mingw32-gcc \
 	GOOS=windows \
 	GOARCH=amd64 \
 	go build -o screenshot-sync.exe .
