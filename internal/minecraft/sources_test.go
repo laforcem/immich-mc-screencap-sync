@@ -11,6 +11,13 @@ import (
 
 func makePrismInstance(t *testing.T, prismDir, instanceName string) string {
 	t.Helper()
+	screenshotsDir := filepath.Join(prismDir, "instances", instanceName, "minecraft", "screenshots")
+	os.MkdirAll(screenshotsDir, 0755)
+	return screenshotsDir
+}
+
+func makePrismInstanceLegacy(t *testing.T, prismDir, instanceName string) string {
+	t.Helper()
 	screenshotsDir := filepath.Join(prismDir, "instances", instanceName, ".minecraft", "screenshots")
 	os.MkdirAll(screenshotsDir, 0755)
 	return screenshotsDir
@@ -46,7 +53,7 @@ func TestDiscoverPrismInstances(t *testing.T) {
 func TestDiscoverSkipsInstancesWithNoScreenshotsDir(t *testing.T) {
 	prismDir := t.TempDir()
 	// Instance without screenshots dir
-	os.MkdirAll(filepath.Join(prismDir, "instances", "Empty", ".minecraft"), 0755)
+	os.MkdirAll(filepath.Join(prismDir, "instances", "Empty", "minecraft"), 0755)
 	// Instance with screenshots dir
 	makePrismInstance(t, prismDir, "HasScreenshots")
 
@@ -56,6 +63,68 @@ func TestDiscoverSkipsInstancesWithNoScreenshotsDir(t *testing.T) {
 	sources, _ := minecraft.Discover(cfg)
 	if len(sources) != 1 || sources[0].InstanceName != "HasScreenshots" {
 		t.Errorf("expected only HasScreenshots, got %v", sources)
+	}
+}
+
+func TestDiscoverPrismModernPath(t *testing.T) {
+	prismDir := t.TempDir()
+	makePrismInstance(t, prismDir, "Modern")
+
+	cfg := &config.Config{
+		Sources: config.SourcesConfig{PrismDir: prismDir, Vanilla: false},
+	}
+	sources, err := minecraft.Discover(cfg)
+	if err != nil {
+		t.Fatalf("Discover: %v", err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("want 1 source, got %d", len(sources))
+	}
+	want := filepath.Join(prismDir, "instances", "Modern", "minecraft", "screenshots")
+	if sources[0].ScreenshotsDir != want {
+		t.Errorf("ScreenshotsDir = %q, want %q", sources[0].ScreenshotsDir, want)
+	}
+}
+
+func TestDiscoverPrismLegacyDotMinecraftPath(t *testing.T) {
+	prismDir := t.TempDir()
+	makePrismInstanceLegacy(t, prismDir, "Legacy")
+
+	cfg := &config.Config{
+		Sources: config.SourcesConfig{PrismDir: prismDir, Vanilla: false},
+	}
+	sources, err := minecraft.Discover(cfg)
+	if err != nil {
+		t.Fatalf("Discover: %v", err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("want 1 source, got %d", len(sources))
+	}
+	want := filepath.Join(prismDir, "instances", "Legacy", ".minecraft", "screenshots")
+	if sources[0].ScreenshotsDir != want {
+		t.Errorf("ScreenshotsDir = %q, want %q", sources[0].ScreenshotsDir, want)
+	}
+}
+
+func TestDiscoverPrismPrefersModernOverLegacy(t *testing.T) {
+	prismDir := t.TempDir()
+	// Both minecraft/ and .minecraft/ exist — modern should win
+	makePrismInstance(t, prismDir, "Both")
+	makePrismInstanceLegacy(t, prismDir, "Both")
+
+	cfg := &config.Config{
+		Sources: config.SourcesConfig{PrismDir: prismDir, Vanilla: false},
+	}
+	sources, err := minecraft.Discover(cfg)
+	if err != nil {
+		t.Fatalf("Discover: %v", err)
+	}
+	if len(sources) != 1 {
+		t.Fatalf("want 1 source, got %d", len(sources))
+	}
+	want := filepath.Join(prismDir, "instances", "Both", "minecraft", "screenshots")
+	if sources[0].ScreenshotsDir != want {
+		t.Errorf("ScreenshotsDir = %q, want %q", sources[0].ScreenshotsDir, want)
 	}
 }
 
