@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Linux build dependencies
+        run: sudo apt-get update -q && sudo apt-get install -y libayatana-appindicator3-dev
+
+      - name: Run tests
+        run: go test ./internal/... -v
+
+      - name: Build Linux binary
+        run: GOOS=linux GOARCH=amd64 go build -o screenshot-sync-linux-amd64 .
+
+      - name: Build Windows binary
+        run: GOOS=windows GOARCH=amd64 go build -o screenshot-sync.exe .
+
+      - name: Upload release artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            screenshot-sync-linux-amd64
+            screenshot-sync.exe
