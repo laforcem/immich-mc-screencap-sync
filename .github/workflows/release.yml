@@ -23,8 +23,11 @@ jobs:
       - name: Run tests
         run: go test ./internal/... -v
 
+      - name: Install Linux build dependencies
+        run: sudo apt-get update -q && sudo apt-get install -y libayatana-appindicator3-dev
+
       - name: Build Linux binary
-        run: go build -o screenshot-sync .
+        run: GOOS=linux GOARCH=amd64 go build -o screenshot-sync-linux-amd64 .
 
       - name: Build Windows binary
         run: GOOS=windows GOARCH=amd64 go build -o screenshot-sync.exe .
@@ -33,5 +36,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            screenshot-sync
+            screenshot-sync-linux-amd64
             screenshot-sync.exe
