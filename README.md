@@ -1,11 +1,16 @@
 # immich-mc-screencap-sync
 
-Automatically sync Minecraft screenshots to your [Immich](https://immich.app) photo server. Watches Prism Launcher and/or the vanilla Minecraft launcher for new screenshots and uploads them — tagged by instance and player — as soon as they appear.
+Automatically sync Minecraft screenshots to your [Immich](https://immich.app) photo server. Watches Prism Launcher and/or the vanilla Minecraft launcher for new screenshots and uploads them as soon as they appear. Uploaded files are tagged by instance and player.
 
-Three run modes:
-- **tray** — background watcher with a system tray icon (recommended for desktop)
-- **daemon** — headless watcher, no tray icon (good for servers or scripted startup)
-- **sync** — one-shot upload of all unsynced screenshots, then exit
+The app has three run modes:
+
+- **tray**: background watcher with a system tray icon
+
+- **daemon**: background watcher, no tray icon
+
+- **sync**: one-shot upload of all unsynced screenshots, then exit
+
+This app is Windows-first until better support for Linux/Mac is added.
 
 ---
 
@@ -13,24 +18,23 @@ Three run modes:
 
 1. **Download** the latest binary for your platform from the [Releases](https://github.com/laforcem/immich-mc-screencap-sync/releases) page.
 
-2. **Copy the example config** next to the binary and fill it in:
+2. **Generate** an API key from Immich. [More on that in their docs](https://api.immich.app/getting-started).
+
+3. **Copy the example config** next to the binary and fill it in:
 
    **Unix/Git Bash:**
-   ```
+
+   ```sh
    cp config.toml.example config.toml
    ```
 
-   **Windows Command Prompt:**
-   ```
-   copy config.toml.example config.toml
-   ```
-
    **Windows PowerShell:**
-   ```
+
+   ```pwsh
    Copy-Item config.toml.example config.toml
    ```
 
-3. **Edit `config.toml`** — at minimum set `immich.url` and `immich.api_key`:
+4. **Edit `config.toml`**. Minimum required fields are `immich.url` and `immich.api_key`:
 
    ```toml
    [immich]
@@ -43,9 +47,9 @@ Three run modes:
    vanilla   = false
    ```
 
-4. **Run:**
+5. **Run:**
 
-   ```
+   ```sh
    screenshot-sync tray
    ```
 
@@ -59,9 +63,9 @@ Config is loaded from the first location that exists:
 2. `%APPDATA%\screenshot-sync\config.toml`
 
 | Key | Required | Default | Description |
-|-----|----------|---------|-------------|
-| `immich.url` | **Yes** | — | Base URL of your Immich instance (same URL inside and outside your network) |
-| `immich.api_key` | **Yes** | — | Immich API key — see [API Key Scope](#immich-api-key-scope) |
+| ----- | ---------- | --------- | ------------- |
+| `immich.url` | **Yes** | - | Base URL of your Immich instance |
+| `immich.api_key` | **Yes** | - | Immich API key (see [API Key Scope](#immich-api-key-scope)) |
 | `immich.album` | No | `"Minecraft"` | Album name in Immich; created automatically if it doesn't exist |
 | `sources.prism_dir` | No | `%APPDATA%\PrismLauncher` | Path to your Prism Launcher root directory. Must be set for portable installs; otherwise the default is used. |
 | `sources.vanilla` | No | `false` | Set to `true` to also watch the vanilla launcher's screenshots folder |
@@ -77,11 +81,7 @@ Each instance under your Prism root is discovered automatically.
 | Path | Notes |
 |------|-------|
 | `<prism_dir>/instances/<instance>/minecraft/screenshots/` | Standard path (Prism ≥ 9) |
-| `<prism_dir>/instances/<instance>/.minecraft/screenshots/` | Legacy fallback — used only if the modern path does not exist |
-
-Default `prism_dir` when `sources.prism_dir` is not set: `%APPDATA%\PrismLauncher`
-
-> **macOS / Linux:** `%APPDATA%` auto-discovery is Windows-only. Set `sources.prism_dir` explicitly in your config.
+| `<prism_dir>/instances/<instance>/.minecraft/screenshots/` | Legacy fallback (used only if the modern path does not exist) |
 
 ### Vanilla Launcher
 
@@ -91,47 +91,47 @@ Enabled with `sources.vanilla = true`.
 |------|
 | `%APPDATA%\.minecraft\screenshots\` |
 
+> [!NOTE]
 > **macOS / Linux:** Vanilla auto-discovery is Windows-only.
 
 ---
 
 ## Immich API Key Scope
 
-In Immich: **Account Settings → API Keys → New API Key**
+See the [Immich docs](https://api.immich.app/getting-started) for how to create an API key.
 
-The following permissions are required:
+The following scopes are required as of Immich v2:
 
-| Resource | Permissions needed |
-|----------|--------------------|
-| Asset | Read, Upload |
-| Album | Read, Create, Update |
-| Tag | Read, Create, Apply |
-
-No admin permissions are required.
+| Resource | Scope |
+| ---------- | -------------------- |
+| `asset` | `read`, `upload` |
+| `album` | `read`, `create`, `update` |
+| `tag` | `read`, `create`, `asset` |
 
 ---
 
 ## Running Modes
 
 | Command | Description |
-|---------|-------------|
-| `screenshot-sync tray` | Runs as a background watcher with a system tray icon. Recommended for everyday desktop use. |
-| `screenshot-sync daemon` | Runs in the foreground with no tray icon. Suitable for headless servers or launching from a script/service. |
-| `screenshot-sync sync` | Uploads all unsynced screenshots once and exits. Useful for a manual catch-up or testing your config. |
+| --------- | ------------- |
+| `screenshot-sync tray` | Runs as a background watcher with a system tray icon. |
+| `screenshot-sync daemon` | Runs in the foreground with no tray icon. |
+| `screenshot-sync sync` | Uploads all unsynced screenshots once and exits. |
 
 ---
 
 ## Dev Environment Setup
 
 **Prerequisites:**
-- [Go](https://go.dev/dl/) 1.25.5 or later
-- Git
 
-**Clone and verify:**
+- [`go`](https://go.dev/dl/) ≥1.25.5
+- `git`
+
+**Checkup:**
+
+Clone the repo, then:
 
 ```sh
-git clone https://github.com/laforcem/immich-mc-screencap-sync.git
-cd immich-mc-screencap-sync
 go mod download
 go test ./internal/... -v
 ```
@@ -150,15 +150,17 @@ make build
 
 Output: `./screenshot-sync`
 
-### Windows (no Make required)
+### Windows (no `make`)
 
 **Command Prompt:**
+
 ```bat
 build.bat
 ```
 
 **PowerShell:**
-```powershell
+
+```pwsh
 .\build.ps1
 ```
 

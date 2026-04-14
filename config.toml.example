@@ -1,8 +1,8 @@
 [immich]
-# URL of your Immich instance (same URL used inside and outside your network)
+# URL of your Immich instance
 url = "https://photos.example.com"
 
-# Immich API key — create one in Immich under Account Settings > API Keys
+# Immich API key (create one in Immich with the proper scope)
 api_key = "your-api-key-here"
 
 # Album name in Immich where screenshots will be collected (created automatically if missing)
