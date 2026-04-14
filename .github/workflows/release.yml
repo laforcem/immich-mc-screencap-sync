@@ -20,11 +20,11 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Run tests
-        run: go test ./internal/... -v
-
       - name: Install Linux build dependencies
         run: sudo apt-get update -q && sudo apt-get install -y libayatana-appindicator3-dev
+
+      - name: Run tests
+        run: go test ./internal/... -v
 
       - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o screenshot-sync-linux-amd64 .
