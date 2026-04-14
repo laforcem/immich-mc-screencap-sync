@@ -43,8 +43,8 @@ func Discover(cfg *config.Config) ([]Source, error) {
 			if !entry.IsDir() {
 				continue
 			}
-			screenshotsDir := filepath.Join(instancesDir, entry.Name(), ".minecraft", "screenshots")
-			if _, err := os.Stat(screenshotsDir); err != nil {
+			screenshotsDir := prismScreenshotsDir(instancesDir, entry.Name())
+			if screenshotsDir == "" {
 				continue
 			}
 			sources = append(sources, Source{
@@ -78,6 +78,23 @@ func Discover(cfg *config.Config) ([]Source, error) {
 	}
 
 	return sources, nil
+}
+
+// prismScreenshotsDir returns the screenshots directory for a Prism instance,
+// mirroring Prism Launcher's own gameRoot() logic: prefer "minecraft/screenshots",
+// fall back to ".minecraft/screenshots" only if the legacy path exists and the
+// modern one does not.
+func prismScreenshotsDir(instancesDir, instanceName string) string {
+	modern := filepath.Join(instancesDir, instanceName, "minecraft", "screenshots")
+	legacy := filepath.Join(instancesDir, instanceName, ".minecraft", "screenshots")
+
+	if _, err := os.Stat(modern); err == nil {
+		return modern
+	}
+	if _, err := os.Stat(legacy); err == nil {
+		return legacy
+	}
+	return ""
 }
 
 // prismRoots returns candidate Prism Launcher root directories to try, in priority order.
