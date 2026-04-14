@@ -11,12 +11,23 @@ Three run modes:
 
 ## Quick Start
 
-1. **Download** the latest binary for your platform from the [Releases](../../releases) page.
+1. **Download** the latest binary for your platform from the [Releases](https://github.com/laforcem/immich-mc-screencap-sync/releases) page.
 
 2. **Copy the example config** next to the binary and fill it in:
 
+   **Unix/Git Bash:**
    ```
    cp config.toml.example config.toml
+   ```
+
+   **Windows Command Prompt:**
+   ```
+   copy config.toml.example config.toml
+   ```
+
+   **Windows PowerShell:**
+   ```
+   Copy-Item config.toml.example config.toml
    ```
 
 3. **Edit `config.toml`** — at minimum set `immich.url` and `immich.api_key`:
@@ -52,7 +63,7 @@ Config is loaded from the first location that exists:
 | `immich.url` | **Yes** | — | Base URL of your Immich instance (same URL inside and outside your network) |
 | `immich.api_key` | **Yes** | — | Immich API key — see [API Key Scope](#immich-api-key-scope) |
 | `immich.album` | No | `"Minecraft"` | Album name in Immich; created automatically if it doesn't exist |
-| `sources.prism_dir` | No | `%APPDATA%\PrismLauncher` | Path to your Prism Launcher root directory. Required if Prism is installed portably. |
+| `sources.prism_dir` | No | `%APPDATA%\PrismLauncher` | Path to your Prism Launcher root directory. Must be set for portable installs; otherwise the default is used. |
 | `sources.vanilla` | No | `false` | Set to `true` to also watch the vanilla launcher's screenshots folder |
 
 ---
@@ -113,7 +124,7 @@ No admin permissions are required.
 ## Dev Environment Setup
 
 **Prerequisites:**
-- [Go](https://go.dev/dl/) 1.21 or later
+- [Go](https://go.dev/dl/) 1.25.5 or later
 - Git
 
 **Clone and verify:**
