@@ -5,9 +5,7 @@ Automatically sync Minecraft screenshots to your [Immich](https://immich.app) ph
 The app has three run modes:
 
 - **tray**: background watcher with a system tray icon
-
 - **daemon**: background watcher, no tray icon
-
 - **sync**: one-shot upload of all unsynced screenshots, then exit
 
 This app is Windows-first until better support for Linux/Mac is added.
