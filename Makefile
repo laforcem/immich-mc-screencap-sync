@@ -1,4 +1,4 @@
-.PHONY: build build-windows test clean
+.PHONY: build build-windows run-sync run-daemon run-tray test clean
 
 # Detect OS for output binary name
 ifeq ($(OS),Windows_NT)
@@ -16,6 +16,15 @@ build-windows:
 	GOOS=windows \
 	GOARCH=amd64 \
 	go build -o screenshot-sync.exe .
+
+run-sync: build-windows
+	./screenshot-sync.exe sync
+
+run-daemon: build-windows
+	./screenshot-sync.exe daemon
+
+run-tray: build-windows
+	./screenshot-sync.exe tray
 
 test:
 	go test ./internal/... -v
