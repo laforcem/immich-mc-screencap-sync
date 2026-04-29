@@ -12,6 +12,10 @@ WSL interop handles `.exe` execution natively — no extra tools needed.
 
 stdout/stderr flow back to the WSL terminal for all three modes. The tray icon appears in the Windows taskbar; quit via the tray menu.
 
+## Superpowers Docs
+
+`docs/superpowers/` is gitignored — specs and plans written there do not need to be committed.
+
 ## Config
 
 `config.toml` lives in the repo root (gitignored). Use Windows-format paths for `prism_dir` and any other paths — the binary runs as a Windows process.
