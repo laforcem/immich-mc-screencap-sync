@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/inconshreveable/mousetrap"
 	"github.com/malc/screenshot-sync/internal/config"
 	"github.com/malc/screenshot-sync/internal/immich"
 	"github.com/malc/screenshot-sync/internal/minecraft"
@@ -22,6 +23,11 @@ var rootCmd = &cobra.Command{
 
 // Execute runs the root command.
 func Execute() {
+	// Disable cobra's built-in Explorer-launch warning; we handle it ourselves.
+	cobra.MousetrapHelpText = ""
+	if mousetrap.StartedByExplorer() {
+		os.Args = append([]string{os.Args[0], "tray"}, os.Args[1:]...)
+	}
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
