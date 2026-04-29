@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/getlantern/systray"
+	"github.com/inconshreveable/mousetrap"
 	"github.com/malc/screenshot-sync/internal/assets"
 	"github.com/malc/screenshot-sync/internal/config"
 	"github.com/malc/screenshot-sync/internal/immich"
@@ -39,6 +40,10 @@ func onReady(cfg *config.Config, client *immich.Client, st *state.State) func() 
 	return func() {
 		systray.SetIcon(assets.IconIdle())
 		systray.SetTooltip("Minecraft Screenshot Sync")
+
+		if mousetrap.StartedByExplorer() {
+			go hideConsoleAfterCountdown()
+		}
 
 		mSync := systray.AddMenuItem("Sync Now", "Upload all unsynced screenshots")
 		systray.AddSeparator()
