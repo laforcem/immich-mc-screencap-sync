@@ -25,12 +25,19 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	// Disable cobra's built-in Explorer-launch warning; we handle it ourselves.
 	cobra.MousetrapHelpText = ""
-	if mousetrap.StartedByExplorer() {
-		os.Args = append([]string{os.Args[0], "tray"}, os.Args[1:]...)
-	}
+	os.Args = applyMousetrap(os.Args, mousetrap.StartedByExplorer())
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+// applyMousetrap injects "tray" as the first argument when launched from Explorer,
+// so double-clicking the exe enters tray mode instead of showing CLI help.
+func applyMousetrap(args []string, fromExplorer bool) []string {
+	if fromExplorer {
+		return append([]string{args[0], "tray"}, args[1:]...)
+	}
+	return args
 }
 
 func setup() (*config.Config, *immich.Client, *state.State, error) {
