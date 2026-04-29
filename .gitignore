@@ -2,3 +2,5 @@ screenshot-sync
 screenshot-sync.exe
 state.json
 config.toml
+.claude/
+docs/superpowers/
