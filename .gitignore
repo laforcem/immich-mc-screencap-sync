@@ -4,3 +4,4 @@ state.json
 config.toml
 .claude/
 docs/superpowers/
+venv/
